@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messenger Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      height: 90vh;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: #0084ff;
+      padding: 1rem;
+      color: white;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      background-color: #e5e9f0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .message-row.sender {
+      justify-content: flex-end;
+    }
+
+    .message-bubble {
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 70%;
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  word-wrap: break-word;  /* Ensures long words break and wrap to the next line */
+  white-space: normal;    /* Ensures that text wraps within the container */
+}
+
+
+    .sender .message-bubble {
+      background-color: #0084ff;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .receiver .message-bubble {
+      background-color: #f0f0f0;
+      color: black;
+      border-bottom-left-radius: 4px;
+    }
+
+    .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background-color: #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .timestamp {
+      font-size: 0.7rem;
+      color: #555;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #ccc;
+      border-radius: 9999px;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .chat-input button {
+      margin-left: 10px;
+      background-color: #0084ff;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .chat-input button:hover {
+      background-color: #006fd4;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      Messenger Clone
+    </div>
+    <div class="chat-messages" id="allmsg">
+      <!-- Messages appear here -->
+    </div>
+    <div class="chat-input">
+      <input type="text" id="msg" placeholder="Type a message..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const sendbtn = document.getElementById('send-btn');
+    const msgInput = document.getElementById('msg');
+    const allmsg = document.getElementById('allmsg');
+
+    sendbtn.addEventListener("click", () => {
+      const msg = msgInput.value.trim();
+      if (msg !== '') {
+        const messageData = {
+          user: "You", // Default to "You"
+          msg: msg,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        socket.emit('User-message', messageData);
+        appendMessage(messageData, true);
+        msgInput.value = '';
+      }
+    });
+
+    socket.on('User-message', function(messageData) {
+      // Always treat incoming messages as receiver
+      appendMessage(messageData, false);
+    });
+
+    function appendMessage(data, isSender) {
+      const msgRow = document.createElement('div');
+      msgRow.classList.add('message-row', isSender ? 'sender' : 'receiver');
+
+      const avatar = document.createElement('div');
+      avatar.classList.add('avatar');
+      avatar.textContent = "Y"; // Always "Y" for avatar
+
+      const bubble = document.createElement('div');
+      bubble.classList.add('message-bubble');
+      bubble.innerText = data.msg;
+
+      const timestamp = document.createElement('div');
+      timestamp.classList.add('timestamp');
+      timestamp.textContent = data.time;
+
+      const msgContainer = document.createElement('div');
+      msgContainer.appendChild(bubble);
+      msgContainer.appendChild(timestamp);
+
+      if (isSender) {
+        msgRow.appendChild(msgContainer);
+        msgRow.appendChild(avatar);
+      } else {
+        msgRow.appendChild(avatar);
+        msgRow.appendChild(msgContainer);
+      }
+
+      allmsg.appendChild(msgRow);
+      allmsg.scrollTop = allmsg.scrollHeight;
+    }
+  </script>
+</body>
+</html>
+
+<!-- This is a simple chat application using Socket.IO. The HTML structure includes a header, a message display area, and an input area for sending messages. The CSS styles the chat interface to look modern and user-friendly. The JavaScript handles sending and receiving messages through Socket.IO. -->
