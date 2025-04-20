@@ -10,7 +10,7 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
   socket.on('User-message', (msg) => {
     console.log('message: ' + msg);
-    io.emit('User-message', msg); // Broadcast the message to all clients
+    socket.broadcast.emit('User-message', msg); // Send to everyone except sender
   });
 }); 
 
